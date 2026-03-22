@@ -1,36 +1,47 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+  Utensils, Beef, Fish, Wheat, Leaf, Cookie,
+  Sunrise, Drumstick, Flame, ShoppingBag,
+} from "lucide-react-native";
 import { useTheme } from "../context/ThemeContext";
 
-const ICONS: Record<string, string> = {
-  All: "✦", Chicken: "🍗", Beef: "🥩", Seafood: "🐟",
-  Pasta: "🍝", Vegetarian: "🥦", Dessert: "🍰",
-  Breakfast: "🥞", Lamb: "🍖", Pork: "🥓",
-  Italian: "🇮🇹", Mexican: "🌮", Japanese: "🍱",
-  Chinese: "🥢", Indian: "🍛", French: "🥐",
-  American: "🍔", Thai: "🍜", Moroccan: "🫕",
+const ICONS: Record<string, any> = {
+  All:        Utensils,
+  Chicken:    Drumstick,
+  Beef:       Beef,
+  Seafood:    Fish,
+  Pasta:      Wheat,
+  Vegetarian: Leaf,
+  Dessert:    Cookie,
+  Breakfast:  Sunrise,
+  Lamb:       Flame,
+  Pork:       ShoppingBag,
 };
 
 type Props = { label: string; active: boolean; onPress: () => void };
 
 export default function CategoryChip({ label, active, onPress }: Props) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const Icon = ICONS[label] ?? Utensils;
 
   return (
     <TouchableOpacity
       style={[
         s.chip,
-        { backgroundColor: colors.bgCard, borderColor: colors.border },
-        active && { backgroundColor: colors.accent, borderColor: colors.accent },
+        {
+          backgroundColor: active ? colors.accent : isDark ? "rgba(255,255,255,0.08)" : colors.bgCard,
+          borderColor: active ? colors.accent : isDark ? "rgba(255,255,255,0.12)" : colors.border,
+        },
       ]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Text style={s.icon}>{ICONS[label] ?? "🍽️"}</Text>
-      <Text style={[
-        s.label,
-        { color: colors.accent },
-        active && { color: "#fff" },
-      ]}>
+      <Icon
+        size={14}
+        color={active ? "#fff" : colors.accent}
+        strokeWidth={2}
+      />
+      <Text style={[s.label, { color: active ? "#fff" : colors.accent }]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -43,6 +54,5 @@ const s = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8,
     borderRadius: 20, borderWidth: 1, gap: 6,
   },
-  icon: { fontSize: 14 },
   label: { fontSize: 13, fontWeight: "600" },
 });

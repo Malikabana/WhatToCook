@@ -1,9 +1,10 @@
+import { useRef, useEffect, useState } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 import {
-  ImageBackground, SafeAreaView, ScrollView,
-  StyleSheet, Text, TouchableOpacity, View,
+  Animated, Easing, SafeAreaView, ScrollView,
+  StatusBar, StyleSheet, Text, TouchableOpacity, View,
 } from "react-native";
+import { ShoppingBag, Plus } from "lucide-react-native";
 import TopBar from "../../components/TopBar";
 import { useApp } from "../../context/AppContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -53,26 +54,44 @@ export default function GroceryList() {
   const total = list.reduce((a, c) => a + c.items.length, 0);
   const [checked, setChecked] = useState<string[]>([]);
 
+  const scale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 1.06, duration: 12000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1,    duration: 12000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
   const toggle = (item: string) =>
     setChecked((p) => p.includes(item) ? p.filter((i) => i !== item) : [...p, item]);
 
   return (
     <View style={{ flex: 1 }}>
-      <ImageBackground
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <Animated.Image
         source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
-        style={StyleSheet.absoluteFillObject}
+        style={[StyleSheet.absoluteFillObject, { transform: [{ scale }] }]}
         resizeMode="cover"
       />
-      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.92)" }} />
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.88)" }} />
 
       <SafeAreaView style={s.safe}>
         <TopBar title={LABELS[goal]} showBack />
         <ScrollView contentContainerStyle={[s.content, { marginTop: 80 }]} showsVerticalScrollIndicator={false}>
 
           <View style={s.topRow}>
-            <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>{checked.length} / {total} checked</Text>
-            <TouchableOpacity onPress={() => list.flatMap((c) => c.items).forEach((i) => addToGrocery(i))}>
-              <Text style={[s.addAll, { color: colors.accent }]}>+ Add all to list</Text>
+            <View style={s.counterRow}>
+              <ShoppingBag size={13} color={isDark ? "#bbb" : colors.textMuted} strokeWidth={2} />
+              <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>{checked.length} / {total} checked</Text>
+            </View>
+            <TouchableOpacity
+              style={s.addAllBtn}
+              onPress={() => list.flatMap((c) => c.items).forEach((i) => addToGrocery(i))}
+            >
+              <Plus size={13} color={colors.accent} strokeWidth={2.5} />
+              <Text style={[s.addAll, { color: colors.accent }]}>Add all to list</Text>
             </TouchableOpacity>
           </View>
 
@@ -121,7 +140,9 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 20, paddingBottom: 48 },
   topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  counterRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   sub: { fontSize: 13 },
+  addAllBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
   addAll: { fontSize: 13, fontWeight: "700" },
   barBg: { height: 5, borderRadius: 3, marginBottom: 24, overflow: "hidden" },
   barFill: { height: "100%", borderRadius: 3 },

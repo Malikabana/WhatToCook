@@ -1,4 +1,9 @@
-import { FlatList, ImageBackground, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { useRef, useEffect } from "react";
+import {
+  Animated, Easing, FlatList, SafeAreaView,
+  StatusBar, StyleSheet, Text, View,
+} from "react-native";
+import { Heart } from "lucide-react-native";
 import RecipeCard from "../components/RecipeCard";
 import TopBar from "../components/TopBar";
 import { useApp } from "../context/AppContext";
@@ -11,43 +16,54 @@ export default function Favorites() {
   const { favorites } = useApp();
   const { colors, isDark } = useTheme();
 
-  const content = (
-    <SafeAreaView style={s.safe}>
-      <TopBar title="Favorites" showBack={false} />
-      <FlatList
-        data={favorites}
-        keyExtractor={(m) => m.idMeal}
-        contentContainerStyle={[s.list, { marginTop: 80 }]}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>
-            {favorites.length === 0
-              ? "No saved recipes yet"
-              : `${favorites.length} saved recipe${favorites.length !== 1 ? "s" : ""}`}
-          </Text>
-        }
-        ListEmptyComponent={
-          <View style={s.emptyBox}>
-            <Text style={s.emptyIcon}>🤍</Text>
-            <Text style={[s.emptyText, { color: isDark ? "#bbb" : colors.textMuted }]}>
-              Tap the heart on any recipe to save it here
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => <RecipeCard meal={item} route={`/recipe/${item.idMeal}`} />}
-      />
-    </SafeAreaView>
-  );
+  const scale = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 1.06, duration: 12000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1,    duration: 12000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
-      <ImageBackground
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <Animated.Image
         source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
-        style={StyleSheet.absoluteFillObject}
+        style={[StyleSheet.absoluteFillObject, { transform: [{ scale }] }]}
         resizeMode="cover"
       />
-      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.92)" }} />
-      {content}
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.88)" }} />
+
+      <SafeAreaView style={s.safe}>
+        <TopBar title="Favorites" showBack={false} />
+        <FlatList
+          data={favorites}
+          keyExtractor={(m) => m.idMeal}
+          contentContainerStyle={[s.list, { marginTop: 80 }]}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={s.headerRow}>
+              <Heart size={14} color={isDark ? "#bbb" : colors.textMuted} strokeWidth={2} />
+              <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>
+                {favorites.length === 0
+                  ? "No saved recipes yet"
+                  : `${favorites.length} saved recipe${favorites.length !== 1 ? "s" : ""}`}
+              </Text>
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={s.emptyBox}>
+              <Heart size={48} color={isDark ? "#333" : "#FFE4C8"} strokeWidth={1.5} />
+              <Text style={[s.emptyText, { color: isDark ? "#555" : colors.textMuted }]}>
+                Tap the heart on any recipe to save it here
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) => <RecipeCard meal={item} route={`/recipe/${item.idMeal}`} />}
+        />
+      </SafeAreaView>
     </View>
   );
 }
@@ -55,8 +71,8 @@ export default function Favorites() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "transparent" },
   list: { padding: 16, paddingBottom: 40 },
-  sub: { fontSize: 14, marginBottom: 16 },
-  emptyBox: { alignItems: "center", marginTop: 100, gap: 12 },
-  emptyIcon: { fontSize: 50 },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 16 },
+  sub: { fontSize: 14 },
+  emptyBox: { alignItems: "center", marginTop: 100, gap: 16 },
   emptyText: { fontSize: 15, textAlign: "center", lineHeight: 22, paddingHorizontal: 20 },
 });
