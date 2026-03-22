@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { AppProvider, useApp } from "../context/AppContext";
+import { ThemeProvider } from "../context/ThemeContext";
 
 function RouteGuard() {
   const { user, authReady } = useApp();
@@ -28,8 +29,10 @@ function Layout() {
 
 export default function RootLayout() {
   return (
-    <AppProvider>
-      <Layout />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <Layout />
+      </AppProvider>
+    </ThemeProvider>
   );
 }

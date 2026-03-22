@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { useTheme } from "../../context/ThemeContext";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
 import {
@@ -31,7 +32,7 @@ export default function Login() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
+  const { isDark, toggleTheme } = useTheme();
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) { setError("Please fill in all fields."); return; }
     setLoading(true); setError("");
@@ -51,7 +52,17 @@ export default function Login() {
       resizeMode="cover"
     >
       <StatusBar barStyle="light-content" />
-
+     <TouchableOpacity
+  onPress={toggleTheme}
+  style={{
+    position: "absolute",
+    top: 60, right: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    padding: 10, borderRadius: 20, zIndex: 10,
+  }}
+>
+  <Text style={{ fontSize: 20 }}>{isDark ? "☀️" : "🌙"}</Text>
+</TouchableOpacity>
       {/* Multi-layer overlay for depth */}
       <View style={s.overlay} />
       <View style={s.overlayBottom} />

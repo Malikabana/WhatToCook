@@ -1,4 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { useTheme } from "../context/ThemeContext";
 
 const ICONS: Record<string, string> = {
   All: "✦", Chicken: "🍗", Beef: "🥩", Seafood: "🐟",
@@ -12,14 +13,26 @@ const ICONS: Record<string, string> = {
 type Props = { label: string; active: boolean; onPress: () => void };
 
 export default function CategoryChip({ label, active, onPress }: Props) {
+  const { colors } = useTheme();
+
   return (
     <TouchableOpacity
-      style={[s.chip, active && s.chipOn]}
+      style={[
+        s.chip,
+        { backgroundColor: colors.bgCard, borderColor: colors.border },
+        active && { backgroundColor: colors.accent, borderColor: colors.accent },
+      ]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <Text style={s.icon}>{ICONS[label] ?? "🍽️"}</Text>
-      <Text style={[s.label, active && s.labelOn]}>{label}</Text>
+      <Text style={[
+        s.label,
+        { color: colors.accent },
+        active && { color: "#fff" },
+      ]}>
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -28,11 +41,8 @@ const s = StyleSheet.create({
   chip: {
     flexDirection: "row", alignItems: "center",
     paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 20, backgroundColor: "#fff",
-    borderWidth: 1, borderColor: "#FFE4C8", gap: 6,
+    borderRadius: 20, borderWidth: 1, gap: 6,
   },
-  chipOn: { backgroundColor: "#FF6B00", borderColor: "#FF6B00" },
   icon: { fontSize: 14 },
-  label: { fontSize: 13, fontWeight: "600", color: "#C2410C" },
-  labelOn: { color: "#fff" },
+  label: { fontSize: 13, fontWeight: "600" },
 });

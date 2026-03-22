@@ -1,29 +1,47 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator, Image, SafeAreaView, ScrollView,
-  StyleSheet, Text, TouchableOpacity, View,
+  StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
 import { Meal, useApp } from "../../context/AppContext";
+import { useTheme } from "../../context/ThemeContext";
 import { getMealById } from "../../services/api";
 
 export default function RecipeDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { toggleFavorite, isFavorite, fridgeItems, addToGrocery, groceryList, addRecentlyViewed } = useApp();
-  const [meal, setMeal] = useState<Meal | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { colors, isDark } = useTheme();
+  const { toggleFavorite, isFavorite, fridgeItems, addToGrocery, groceryList, saveNote, getNote } = useApp();
+  const [meal, setMeal]         = useState<Meal | null>(null);
+  const [loading, setLoading]   = useState(true);
+  const [note, setNote]         = useState("");
+  const [noteSaved, setNoteSaved] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     getMealById(id).then((m) => {
       setMeal(m);
-      if (m) addRecentlyViewed(m);
+      if (m) setNote(getNote(m.idMeal));
     }).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <ActivityIndicator size="large" color="#FF6B00" style={{ flex: 1, backgroundColor: "#FFF7ED" }} />;
-  if (!meal) return <SafeAreaView style={s.safe}><Text style={s.err}>Could not load recipe.</Text></SafeAreaView>;
+  const handleSaveNote = () => {
+    if (!meal) return;
+    saveNote(meal.idMeal, note);
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 2000);
+  };
+
+  if (loading) return (
+    <ActivityIndicator size="large" color="#FF8C42" style={{ flex: 1, backgroundColor: isDark ? "#0d0d0d" : "#FFF7ED" }} />
+  );
+
+  if (!meal) return (
+    <SafeAreaView style={[s.safe, { backgroundColor: isDark ? "#0d0d0d" : "#FFF7ED" }]}>
+      <Text style={[s.err, { color: colors.textMuted }]}>Could not load recipe.</Text>
+    </SafeAreaView>
+  );
 
   const fav = isFavorite(meal.idMeal);
 
@@ -39,52 +57,67 @@ export default function RecipeDetail() {
   const have = ingredients.filter((i) => i.inFridge).length;
 
   return (
-    <SafeAreaView style={s.safe}>
+    <SafeAreaView style={[s.safe, { backgroundColor: isDark ? "#0d0d0d" : "#FFF7ED" }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
+
         <Image source={{ uri: meal.strMealThumb }} style={s.image} />
         <TouchableOpacity style={s.backBtn} onPress={() => router.back()}>
           <Text style={s.backText}>‹</Text>
         </TouchableOpacity>
 
         <View style={s.body}>
-          <Text style={s.title}>{meal.strMeal}</Text>
+          <Text style={[s.title, { color: colors.text }]}>{meal.strMeal}</Text>
 
+          {/* Tags */}
           <View style={s.tags}>
             {[meal.strCategory, meal.strArea].filter(Boolean).map((t) => (
-              <View key={t} style={s.tag}><Text style={s.tagText}>{t}</Text></View>
+              <View key={t} style={[s.tag, { backgroundColor: colors.accentLight }]}>
+                <Text style={[s.tagText, { color: colors.accent }]}>{t}</Text>
+              </View>
             ))}
           </View>
 
+          {/* Fridge match */}
           {fridgeItems.length > 0 && (
-            <View style={s.summary}>
-              <Text style={s.summaryText}>
-                You have <Text style={s.summaryBold}>{have} of {ingredients.length}</Text> ingredients
+            <View style={[s.summary, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+              <Text style={[s.summaryText, { color: colors.textMuted }]}>
+                You have{" "}
+                <Text style={[s.summaryBold, { color: colors.accent }]}>{have} of {ingredients.length}</Text>
+                {" "}ingredients
               </Text>
-              <View style={s.summaryBar}>
-                <View style={[s.summaryFill, { width: `${(have / ingredients.length) * 100}%` as any }]} />
+              <View style={[s.summaryBar, { backgroundColor: colors.border }]}>
+                <View style={[s.summaryFill, { width: `${(have / ingredients.length) * 100}%` as any, backgroundColor: colors.accent }]} />
               </View>
             </View>
           )}
 
-          <TouchableOpacity style={[s.favBtn, fav && s.favBtnOn]} onPress={() => toggleFavorite(meal)}>
-            <Text style={[s.favText, fav && s.favTextOn]}>
+          {/* Favorite button */}
+          <TouchableOpacity
+            style={[s.favBtn, { borderColor: colors.accent }, fav && { backgroundColor: colors.accent }]}
+            onPress={() => toggleFavorite(meal)}
+          >
+            <Text style={[s.favText, { color: fav ? "#fff" : colors.accent }]}>
               {fav ? "❤️  Remove from Favorites" : "🤍  Save to Favorites"}
             </Text>
           </TouchableOpacity>
 
-          <Text style={s.section}>Ingredients</Text>
+          {/* Ingredients */}
+          <Text style={[s.section, { color: colors.text }]}>Ingredients</Text>
           {ingredients.map((ing, i) => {
             const inList = groceryList.includes(ing.name);
             return (
               <View key={i} style={s.ingRow}>
                 <View style={[s.dot, ing.inFridge ? s.dotGreen : s.dotRed]} />
-                <Text style={s.ingText}>{ing.measure ? `${ing.measure} ` : ""}{ing.name}</Text>
+                <Text style={[s.ingText, { color: colors.textMuted }]}>
+                  {ing.measure ? `${ing.measure} ` : ""}{ing.name}
+                </Text>
                 {!ing.inFridge && (
                   <TouchableOpacity
-                    style={[s.addBtn, inList && s.addBtnDone]}
+                    style={[s.addBtn, { backgroundColor: colors.accentLight, borderColor: colors.accent },
+                      inList && { borderColor: "#22c55e", backgroundColor: "#f0fdf4" }]}
                     onPress={() => !inList && addToGrocery(ing.name)}
                   >
-                    <Text style={[s.addBtnText, inList && s.addBtnTextDone]}>
+                    <Text style={[s.addBtnText, { color: colors.accent }, inList && { color: "#22c55e" }]}>
                       {inList ? "✓" : "+ List"}
                     </Text>
                   </TouchableOpacity>
@@ -93,8 +126,34 @@ export default function RecipeDetail() {
             );
           })}
 
-          <Text style={s.section}>Instructions</Text>
-          <Text style={s.instructions}>{meal.strInstructions}</Text>
+          {/* Instructions */}
+          <Text style={[s.section, { color: colors.text }]}>Instructions</Text>
+          <Text style={[s.instructions, { color: colors.textMuted }]}>{meal.strInstructions}</Text>
+
+          {/* Personal notes */}
+          <Text style={[s.section, { color: colors.text }]}>My Notes</Text>
+          <TextInput
+            style={[s.noteInput, {
+              backgroundColor: colors.bgCard,
+              borderColor: colors.border,
+              color: colors.text,
+            }]}
+            placeholder="Write your personal notes here..."
+            placeholderTextColor={colors.textFaint}
+            value={note}
+            onChangeText={setNote}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+          <TouchableOpacity
+            style={[s.saveNoteBtn, { backgroundColor: noteSaved ? "#22c55e" : colors.accent }]}
+            onPress={handleSaveNote}
+          >
+            <Text style={s.saveNoteBtnText}>
+              {noteSaved ? "✓ Saved!" : "Save Note"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -102,8 +161,8 @@ export default function RecipeDetail() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FFF7ED" },
-  err: { textAlign: "center", marginTop: 80, color: "#aaa", fontSize: 16 },
+  safe: { flex: 1 },
+  err: { textAlign: "center", marginTop: 80, fontSize: 16 },
   image: { width: "100%", height: 300 },
   backBtn: {
     position: "absolute", top: 52, left: 16,
@@ -112,28 +171,34 @@ const s = StyleSheet.create({
   },
   backText: { fontSize: 28, color: "#fff", lineHeight: 32 },
   body: { padding: 20 },
-  title: { fontSize: 24, fontWeight: "800", color: "#1a1a1a", marginBottom: 12 },
+  title: { fontSize: 24, fontWeight: "800", marginBottom: 12 },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 },
-  tag: { backgroundColor: "#FFEDD5", paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
-  tagText: { color: "#C2410C", fontSize: 13, fontWeight: "600" },
-  summary: { backgroundColor: "#fff", borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: "#FFE4C8", gap: 8 },
-  summaryText: { fontSize: 14, color: "#555" },
-  summaryBold: { fontWeight: "800", color: "#FF6B00" },
-  summaryBar: { height: 5, backgroundColor: "#FFE4C8", borderRadius: 3, overflow: "hidden" },
-  summaryFill: { height: "100%", backgroundColor: "#FF6B00", borderRadius: 3 },
-  favBtn: { borderWidth: 2, borderColor: "#FF6B00", borderRadius: 14, paddingVertical: 14, alignItems: "center", marginBottom: 28 },
-  favBtnOn: { backgroundColor: "#FF6B00" },
-  favText: { color: "#FF6B00", fontWeight: "700", fontSize: 15 },
-  favTextOn: { color: "#fff" },
-  section: { fontSize: 18, fontWeight: "800", color: "#1a1a1a", marginBottom: 12, marginTop: 4 },
+  tag: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
+  tagText: { fontSize: 13, fontWeight: "600" },
+  summary: { borderRadius: 14, padding: 14, marginBottom: 16, borderWidth: 1, gap: 8 },
+  summaryText: { fontSize: 14 },
+  summaryBold: { fontWeight: "800" },
+  summaryBar: { height: 5, borderRadius: 3, overflow: "hidden" },
+  summaryFill: { height: "100%", borderRadius: 3 },
+  favBtn: { borderWidth: 2, borderRadius: 14, paddingVertical: 14, alignItems: "center", marginBottom: 28 },
+  favText: { fontWeight: "700", fontSize: 15 },
+  section: { fontSize: 18, fontWeight: "800", marginBottom: 12, marginTop: 4 },
   ingRow: { flexDirection: "row", alignItems: "center", marginBottom: 10, gap: 10 },
   dot: { width: 7, height: 7, borderRadius: 4, flexShrink: 0 },
   dotGreen: { backgroundColor: "#22c55e" },
   dotRed: { backgroundColor: "#ef4444" },
-  ingText: { flex: 1, fontSize: 14, color: "#444", lineHeight: 20, textTransform: "capitalize" },
-  addBtn: { backgroundColor: "#FFEDD5", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 1, borderColor: "#FF6B00" },
-  addBtnDone: { borderColor: "#22c55e", backgroundColor: "#f0fdf4" },
-  addBtnText: { fontSize: 12, fontWeight: "700", color: "#FF6B00" },
-  addBtnTextDone: { color: "#22c55e" },
-  instructions: { fontSize: 14, color: "#555", lineHeight: 26, marginBottom: 48 },
+  ingText: { flex: 1, fontSize: 14, lineHeight: 20, textTransform: "capitalize" },
+  addBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 1 },
+  addBtnText: { fontSize: 12, fontWeight: "700" },
+  instructions: { fontSize: 14, lineHeight: 26, marginBottom: 24 },
+  noteInput: {
+    borderWidth: 1, borderRadius: 14,
+    padding: 14, fontSize: 14, lineHeight: 22,
+    minHeight: 100, marginBottom: 12,
+  },
+  saveNoteBtn: {
+    borderRadius: 14, paddingVertical: 13,
+    alignItems: "center", marginBottom: 48,
+  },
+  saveNoteBtnText: { color: "#fff", fontWeight: "700", fontSize: 15 },
 });

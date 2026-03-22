@@ -1,160 +1,97 @@
 import { useRouter } from "expo-router";
 import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ImageBackground,
+  ImageBackground, SafeAreaView, StyleSheet,
+  Text, TouchableOpacity, View,
 } from "react-native";
 import TopBar from "../../components/TopBar";
+import { useApp } from "../../context/AppContext";
+import { useTheme } from "../../context/ThemeContext";
+
+const DARK_BG  = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=800";
+const LIGHT_BG = "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800";
 
 const GOALS = [
-  { key: "balanced", icon: "⚖️", title: "Balanced diet", desc: "Proteins, carbs and vegetables" },
-  { key: "vegetarian", icon: "🥦", title: "Vegetarian", desc: "Plant-based, no meat or fish" },
-  { key: "budget", icon: "💰", title: "On a budget", desc: "Affordable basics that go far" },
-  { key: "highprotein", icon: "💪", title: "High protein", desc: "Build muscle, stay full" },
+  { key: "balanced",    icon: "⚖️", title: "Balanced diet",  desc: "Proteins, carbs and vegetables"  },
+  { key: "vegetarian",  icon: "🥦", title: "Vegetarian",      desc: "Plant-based, no meat or fish"    },
+  { key: "budget",      icon: "💰", title: "On a budget",     desc: "Affordable basics that go far"   },
+  { key: "highprotein", icon: "💪", title: "High protein",    desc: "Build muscle, stay full"         },
 ] as const;
 
 export default function GroceryHome() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const { activeDiet, setActiveDiet } = useApp();
 
   return (
-    <ImageBackground
-      source={{ uri: "https://i.pinimg.com/736x/9b/63/da/9b63da8361f93f465ab57faa2fa8ac6b.jpg" }}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      {/* 🔥 layered gradient effect */}
-      <View style={s.overlay}>
-        <SafeAreaView style={s.safe}>
-          <TopBar title="Grocery" showBack={false} />
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.92)" }} />
 
-          <View style={s.container}>
-            <Text style={s.title}>Your weekly plan</Text>
-            <Text style={s.sub}>Choose a goal and we’ll handle the rest</Text>
+      <SafeAreaView style={s.safe}>
+        <TopBar title="Grocery" showBack={false} />
+        <View style={[s.container, { marginTop: 80 }]}>
+          <Text style={[s.title, { color: isDark ? "#fff" : colors.text }]}>Your weekly plan</Text>
+          <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>
+            Pick a goal — tap again to set it as your active diet
+          </Text>
 
-            {GOALS.map((goal) => (
+          {GOALS.map((goal) => {
+            const isActive = activeDiet === goal.key;
+            return (
               <TouchableOpacity
                 key={goal.key}
-                style={s.card}
-                onPress={() =>
-                  router.push({
-                    pathname: "/grocery/list",
-                    params: { goal: goal.key },
-                  } as any)
-                }
-                activeOpacity={0.9}
+                style={[
+                  s.card,
+                  isDark
+                    ? { backgroundColor: "rgba(255,255,255,0.08)", borderColor: "rgba(255,255,255,0.12)" }
+                    : { backgroundColor: colors.bgCard, borderColor: colors.border },
+                  isActive && { borderColor: colors.accent, borderWidth: 2 },
+                ]}
+                onPress={() => {
+                  setActiveDiet(isActive ? null : goal.key);
+                  router.push({ pathname: "/grocery/list", params: { goal: goal.key } } as any);
+                }}
+                activeOpacity={0.85}
               >
-                {/* icon bubble */}
-                <View style={s.iconWrap}>
+                <View style={[s.iconWrap, { backgroundColor: isActive ? colors.accent : isDark ? "rgba(255,255,255,0.1)" : colors.accentLight }]}>
                   <Text style={s.icon}>{goal.icon}</Text>
                 </View>
-
-                {/* text */}
                 <View style={s.body}>
-                  <Text style={s.cardTitle}>{goal.title}</Text>
-                  <Text style={s.cardDesc}>{goal.desc}</Text>
+                  <Text style={[s.cardTitle, { color: isDark ? "#fff" : colors.text }]}>{goal.title}</Text>
+                  <Text style={[s.cardDesc, { color: isDark ? "#bbb" : colors.textMuted }]}>{goal.desc}</Text>
                 </View>
-
-                {/* arrow */}
-                <Text style={s.arrow}>›</Text>
+                {isActive
+                  ? <View style={[s.activeBadge, { backgroundColor: colors.accent }]}><Text style={s.activeBadgeText}>Active</Text></View>
+                  : <Text style={[s.arrow, { color: colors.accent }]}>›</Text>
+                }
               </TouchableOpacity>
-            ))}
-          </View>
-        </SafeAreaView>
-      </View>
-    </ImageBackground>
+            );
+          })}
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-
-  // 🔥 smoother, more premium overlay (gradient illusion)
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(10,10,10,0.65)",
-  },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: 22,
-    paddingTop: 10,
-    gap: 16,
-  },
-
-  // 🔥 better hierarchy
-  title: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: "#FFFFFF",
-    letterSpacing: 0.3,
-  },
-
-  sub: {
-    fontSize: 14,
-    color: "#CFCFCF",
-    marginBottom: 12,
-  },
-
-  // 🔥 cleaner spacing + depth
+  safe: { flex: 1, backgroundColor: "transparent" },
+  container: { flex: 1, paddingHorizontal: 20, gap: 12 },
+  title: { fontSize: 24, fontWeight: "900", letterSpacing: 0.3 },
+  sub: { fontSize: 13, marginBottom: 4 },
   card: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 22,
-
-    backgroundColor: "rgba(255,255,255,0.10)",
-
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
+    flexDirection: "row", alignItems: "center",
+    padding: 16, borderRadius: 20, borderWidth: 1, gap: 12,
   },
-
-  // 🔥 icon with better contrast
-  iconWrap: {
-    backgroundColor: "rgba(255,255,255,0.18)",
-    padding: 12,
-    borderRadius: 16,
-  },
-
-  icon: {
-    fontSize: 20,
-  },
-
-  body: {
-    flex: 1,
-    marginLeft: 12,
-  },
-
-  // 🔥 strong readable title
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-
-  // 🔥 softer secondary text
-  cardDesc: {
-    fontSize: 13,
-    color: "#D6D6D6",
-    marginTop: 4,
-    lineHeight: 17,
-  },
-
-  // 🔥 accent color used properly (only here)
-  arrow: {
-    fontSize: 22,
-    color: "#FF8C42", // softer orange (less aggressive)
-    fontWeight: "700",
-  },
+  iconWrap: { width: 48, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  icon: { fontSize: 22 },
+  body: { flex: 1 },
+  cardTitle: { fontSize: 15, fontWeight: "800" },
+  cardDesc: { fontSize: 12, marginTop: 3, lineHeight: 17 },
+  arrow: { fontSize: 22, fontWeight: "700" },
+  activeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
+  activeBadgeText: { color: "#fff", fontSize: 11, fontWeight: "800" },
 });

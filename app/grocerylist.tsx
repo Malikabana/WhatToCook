@@ -1,233 +1,113 @@
 import { useState } from "react";
 import {
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ImageBackground,
+  FlatList, ImageBackground, SafeAreaView,
+  StyleSheet, Text, TouchableOpacity, View,
 } from "react-native";
 import TopBar from "../components/TopBar";
 import { useApp } from "../context/AppContext";
+import { useTheme } from "../context/ThemeContext";
 
-export default function GroceryList() {
+const DARK_BG  = "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=800";
+const LIGHT_BG = "https://images.unsplash.com/photo-1506617564039-2f3b650b7010?w=800";
+
+export default function GroceryListScreen() {
   const { groceryList, removeFromGrocery, clearGrocery } = useApp();
+  const { colors, isDark } = useTheme();
   const [checked, setChecked] = useState<string[]>([]);
 
   const toggle = (item: string) =>
-    setChecked((p) =>
-      p.includes(item) ? p.filter((i) => i !== item) : [...p, item]
-    );
+    setChecked((p) => p.includes(item) ? p.filter((i) => i !== item) : [...p, item]);
 
   return (
-    <ImageBackground
-      source={{ uri: "https://i.pinimg.com/736x/9b/63/da/9b63da8361f93f465ab57faa2fa8ac6b.jpg" }}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <View style={s.overlay}>
-        <SafeAreaView style={s.safe}>
-          <TopBar title="My List" showBack showGrocery={false} />
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.92)" }} />
 
-          <FlatList
-            data={groceryList}
-            keyExtractor={(item) => item}
-            contentContainerStyle={s.list}
-            showsVerticalScrollIndicator={false}
-            ListHeaderComponent={
-              <View style={s.header}>
-                <Text style={s.sub}>
-                  {groceryList.length === 0
-                    ? "Your list is empty"
-                    : `${checked.length} / ${groceryList.length} checked`}
-                </Text>
-
-                {groceryList.length > 0 && (
-                  <>
-                    <View style={s.barBg}>
-                      <View
-                        style={[
-                          s.barFill,
-                          {
-                            width: `${
-                              (checked.length / groceryList.length) * 100
-                            }%` as any,
-                          },
-                        ]}
-                      />
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={clearGrocery}
-                      style={s.clearBtn}
-                    >
-                      <Text style={s.clearText}>Clear all</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            }
-            ListEmptyComponent={
-              <View style={s.emptyBox}>
-                <Text style={s.emptyIcon}>🛒</Text>
-                <Text style={s.emptyText}>
-                  Add ingredients from any recipe or grocery plan
-                </Text>
-              </View>
-            }
-            renderItem={({ item }) => {
-              const done = checked.includes(item);
-
-              return (
-                <View style={s.row}>
-                  <TouchableOpacity
-                    style={[s.box, done && s.boxOn]}
-                    onPress={() => toggle(item)}
-                  >
-                    {done && <Text style={s.tick}>✓</Text>}
+      <SafeAreaView style={s.safe}>
+        <TopBar title="My List" showBack showGrocery={false} />
+        <FlatList
+          data={groceryList}
+          keyExtractor={(item) => item}
+          contentContainerStyle={[s.list, { marginTop: 80 }]}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={s.header}>
+              <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>
+                {groceryList.length === 0 ? "Your list is empty" : `${checked.length} / ${groceryList.length} checked`}
+              </Text>
+              {groceryList.length > 0 && (
+                <>
+                  <View style={[s.barBg, { backgroundColor: isDark ? "rgba(255,255,255,0.15)" : colors.border }]}>
+                    <View style={[s.barFill, { width: `${(checked.length / groceryList.length) * 100}%` as any, backgroundColor: colors.accent }]} />
+                  </View>
+                  <TouchableOpacity onPress={clearGrocery} style={s.clearBtn}>
+                    <Text style={[s.clearText, { color: isDark ? "#888" : colors.textMuted }]}>Clear all</Text>
                   </TouchableOpacity>
-
-                  <Text style={[s.itemText, done && s.itemDone]}>
-                    {item}
-                  </Text>
-
-                  <TouchableOpacity
-                    onPress={() => removeFromGrocery(item)}
-                  >
-                    <Text style={s.remove}>✕</Text>
-                  </TouchableOpacity>
-                </View>
-              );
-            }}
-          />
-        </SafeAreaView>
-      </View>
-    </ImageBackground>
+                </>
+              )}
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={s.emptyBox}>
+              <Text style={s.emptyIcon}>🛒</Text>
+              <Text style={[s.emptyText, { color: isDark ? "#bbb" : colors.textMuted }]}>
+                Add ingredients from any recipe or grocery plan
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) => {
+            const done = checked.includes(item);
+            return (
+              <View style={[s.row, {
+                backgroundColor: isDark ? "rgba(255,255,255,0.07)" : colors.bgCard,
+                borderColor: isDark ? "rgba(255,255,255,0.1)" : colors.border,
+              }]}>
+                <TouchableOpacity
+                  style={[s.box, { borderColor: isDark ? "rgba(255,255,255,0.4)" : colors.border },
+                    done && { backgroundColor: colors.accent, borderColor: colors.accent }]}
+                  onPress={() => toggle(item)}
+                >
+                  {done && <Text style={s.tick}>✓</Text>}
+                </TouchableOpacity>
+                <Text style={[s.itemText, { color: isDark ? "#fff" : colors.text }, done && s.itemDone]}>
+                  {item}
+                </Text>
+                <TouchableOpacity onPress={() => removeFromGrocery(item)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Text style={s.remove}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }}
+        />
+      </SafeAreaView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-
-  // 🔥 same overlay style as your other screens
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
-  },
-
-  list: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-
-  header: {
-    marginBottom: 12,
-  },
-
-  sub: {
-    fontSize: 14,
-    color: "#ddd",
-    marginBottom: 10,
-  },
-
-  barBg: {
-    height: 5,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: 3,
-    marginBottom: 12,
-    overflow: "hidden",
-  },
-
-  barFill: {
-    height: "100%",
-    backgroundColor: "#FF8C42",
-    borderRadius: 3,
-  },
-
-  clearBtn: {
-    alignSelf: "flex-end",
-    marginBottom: 10,
-  },
-
-  clearText: {
-    fontSize: 13,
-    color: "#bbb",
-    fontWeight: "600",
-  },
-
-  // 🔥 glass row style (same as your cards)
+  safe: { flex: 1, backgroundColor: "transparent" },
+  list: { padding: 16, paddingBottom: 40 },
+  header: { marginBottom: 16 },
+  sub: { fontSize: 14, marginBottom: 10 },
+  barBg: { height: 5, borderRadius: 3, marginBottom: 10, overflow: "hidden" },
+  barFill: { height: "100%", borderRadius: 3 },
+  clearBtn: { alignSelf: "flex-end" },
+  clearText: { fontSize: 13, fontWeight: "600" },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    marginBottom: 10,
-    borderRadius: 14,
-
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.15)",
-
-    gap: 14,
+    flexDirection: "row", alignItems: "center",
+    paddingVertical: 14, paddingHorizontal: 14,
+    marginBottom: 10, borderRadius: 14, borderWidth: 1, gap: 14,
   },
-
-  box: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.6)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  boxOn: {
-    backgroundColor: "#FF8C42",
-    borderColor: "#FF8C42",
-  },
-
-  tick: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "800",
-  },
-
-  itemText: {
-    flex: 1,
-    fontSize: 15,
-    color: "#fff",
-    textTransform: "capitalize",
-  },
-
-  itemDone: {
-    color: "#bbb",
-    textDecorationLine: "line-through",
-  },
-
-  remove: {
-    color: "#ccc",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  emptyBox: {
-    alignItems: "center",
-    marginTop: 100,
-    gap: 12,
-  },
-
-  emptyIcon: {
-    fontSize: 48,
-  },
-
-  emptyText: {
-    fontSize: 15,
-    color: "#ccc",
-    textAlign: "center",
-    lineHeight: 22,
-  },
+  box: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
+  tick: { color: "#fff", fontSize: 12, fontWeight: "800" },
+  itemText: { flex: 1, fontSize: 15, textTransform: "capitalize" },
+  itemDone: { color: "#888", textDecorationLine: "line-through" },
+  remove: { color: "#ccc", fontSize: 14, fontWeight: "700" },
+  emptyBox: { alignItems: "center", marginTop: 100, gap: 12 },
+  emptyIcon: { fontSize: 48 },
+  emptyText: { fontSize: 15, textAlign: "center", lineHeight: 22 },
 });
