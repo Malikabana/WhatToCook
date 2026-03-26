@@ -1,21 +1,17 @@
+import { Clock, Search, Shuffle } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Animated, Easing, FlatList,
-  ImageBackground, RefreshControl, SafeAreaView,
-  ScrollView, StatusBar, StyleSheet, Text,
-  TextInput, TouchableOpacity, View,
+  ActivityIndicator, FlatList, RefreshControl, SafeAreaView,
+  ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from "react-native";
-import { Search, Shuffle, Clock } from "lucide-react-native";
-import CategoryChip from "../components/CategoryChip";
-import RecipeCard from "../components/RecipeCard";
-import TopBar from "../components/TopBar";
-import { Meal } from "../context/AppContext";
-import { useTheme } from "../context/ThemeContext";
-import { getRandomMeals, searchByCategory, searchByName } from "../services/api";
+import CategoryChip from "../../components/CategoryChip";
+import RecipeCard from "../../components/RecipeCard";
+import TopBar from "../../components/TopBar";
+import { Meal } from "../../context/AppContext";
+import { useTheme } from "../../context/ThemeContext";
+import { getRandomMeals, searchByCategory, searchByName } from "../../services/api";
 
 const CATEGORIES = ["All","Chicken","Beef","Seafood","Pasta","Vegetarian","Dessert","Breakfast","Lamb","Pork"];
-const DARK_BG  = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800";
-const LIGHT_BG = "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800";
 
 export default function Browse() {
   const { colors, isDark } = useTheme();
@@ -28,17 +24,7 @@ export default function Browse() {
   const [totalCount, setTotalCount]         = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const scale = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(scale, { toValue: 1.06, duration: 12000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(scale, { toValue: 1,    duration: 12000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    ).start();
-    loadRandom();
-  }, []);
+  useEffect(() => { loadRandom(); }, []);
 
   const loadRandom = async () => {
     setLoading(true);
@@ -79,32 +65,13 @@ export default function Browse() {
     setLoading(false);
   };
 
-  const iconColor = isDark ? "rgba(255,255,255,0.5)" : colors.textMuted;
-
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[s.container, { backgroundColor: isDark ? "#0d0d0d" : "#FFF7ED" }]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
-      <Animated.Image
-        source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
-        style={[StyleSheet.absoluteFillObject, { transform: [{ scale }] }]}
-        resizeMode="cover"
-      />
-      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.72)" : "rgba(255,247,237,0.88)" }} />
-
-      <SafeAreaView style={s.safe}>
-        <TopBar title="Browse" showBack={false} />
-
+      <SafeAreaView style={{ flex: 1 }}>
+        <TopBar showBack={false} />
         <View style={[s.inner, { marginTop: 80 }]}>
 
-          {/* Counter */}
-          <View style={s.counterRow}>
-            <Search size={13} color={iconColor} strokeWidth={2} />
-            <Text style={[s.counter, { color: iconColor }]}>
-              {totalCount > 0 ? `${totalCount} recipes found` : "Loading..."}
-            </Text>
-          </View>
-
-          {/* Search bar */}
           <View style={s.searchRow}>
             <View style={[s.searchBox, {
               backgroundColor: isDark ? "rgba(255,255,255,0.09)" : "#fff",
@@ -121,15 +88,11 @@ export default function Browse() {
                 autoCorrect={false}
               />
             </View>
-            <TouchableOpacity
-              style={[s.surpriseBtn, { backgroundColor: colors.accent }]}
-              onPress={handleSurprise}
-            >
+            <TouchableOpacity style={[s.surpriseBtn, { backgroundColor: colors.accent }]} onPress={handleSurprise}>
               <Shuffle size={20} color="#fff" strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
-          {/* Search history */}
           {searchHistory.length > 0 && query === "" && (
             <View style={s.historyRow}>
               <Clock size={12} color={isDark ? "#555" : colors.textFaint} strokeWidth={2} />
@@ -148,21 +111,12 @@ export default function Browse() {
             </View>
           )}
 
-          {/* Category chips */}
-          <ScrollView
-            horizontal showsHorizontalScrollIndicator={false}
-            style={s.chipRow} contentContainerStyle={s.chipContent}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.chipRow} contentContainerStyle={s.chipContent}>
             {CATEGORIES.map((item) => (
-              <CategoryChip
-                key={item} label={item}
-                active={activeCategory === item}
-                onPress={() => handleCategory(item)}
-              />
+              <CategoryChip key={item} label={item} active={activeCategory === item} onPress={() => handleCategory(item)} />
             ))}
           </ScrollView>
 
-          {/* Results */}
           {loading
             ? <ActivityIndicator size="large" color={colors.accent} style={{ marginTop: 60 }} />
             : <FlatList
@@ -182,16 +136,10 @@ export default function Browse() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "transparent" },
+  container: { flex: 1 },
   inner: { flex: 1, paddingHorizontal: 16 },
-  counterRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 8 },
-  counter: { fontSize: 12, fontWeight: "600" },
-  searchRow: { flexDirection: "row", gap: 10, marginBottom: 10 },
-  searchBox: {
-    flex: 1, flexDirection: "row", alignItems: "center",
-    borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
-    borderWidth: 1, gap: 10,
-  },
+  searchRow: { flexDirection: "row", gap: 10, marginBottom: 12 },
+  searchBox: { flex: 1, flexDirection: "row", alignItems: "center", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, gap: 10 },
   searchInput: { flex: 1, fontSize: 15 },
   surpriseBtn: { width: 50, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   historyRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" },

@@ -1,9 +1,19 @@
 import { useRouter } from "expo-router";
-import { useTheme } from "../../context/ThemeContext";
 import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  AlertCircle,
+  CheckCircle2,
+  KeyRound,
+  Lightbulb,
+  Lock,
+  Mail,
+  Sparkles,
+  XCircle,
+} from "lucide-react-native";
 import { useState } from "react";
 import {
   ActivityIndicator,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -14,33 +24,62 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ImageBackground,
 } from "react-native";
 import { auth } from "../../services/firebase";
 
 export default function Register() {
   const router = useRouter();
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm]   = useState("");
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [focused, setFocused]   = useState<string | null>(null);
-const { isDark, toggleTheme } = useTheme();
+  const [confirm, setConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [focused, setFocused] = useState<string | null>(null);
+
   const handleRegister = async () => {
-    if (!email.trim() || !password || !confirm) { setError("Fill in all fields."); return; }
-    if (password !== confirm)  { setError("Passwords don't match."); return; }
-    if (password.length < 6)   { setError("Password must be at least 6 characters."); return; }
-    setLoading(true); setError("");
+    if (!email.trim() || !password || !confirm) {
+      setError("Fill in all fields.");
+      return;
+    }
+
+    if (password !== confirm) {
+      setError("Passwords don't match.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
     } catch (e: any) {
-      if (e.code === "auth/email-already-in-use") setError("Email already registered.");
-      else if (e.code === "auth/invalid-email")   setError("Invalid email address.");
-      else setError("Something went wrong.");
+      if (e.code === "auth/email-already-in-use") {
+        setError("Email already registered.");
+      } else if (e.code === "auth/invalid-email") {
+        setError("Invalid email address.");
+      } else {
+        setError("Something went wrong.");
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const ConfirmIcon = () => {
+    if (confirm.length === 0) {
+      return <KeyRound size={18} color="#888" strokeWidth={2} />;
+    }
+
+    if (password === confirm) {
+      return <CheckCircle2 size={18} color="#22c55e" strokeWidth={2} />;
+    }
+
+    return <XCircle size={18} color="#ef4444" strokeWidth={2} />;
   };
 
   return (
@@ -58,18 +97,19 @@ const { isDark, toggleTheme } = useTheme();
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={s.container}
         >
-          {/* TOP — branding */}
           <View style={s.top}>
             <View style={s.logoBadge}>
-              <Text style={s.logoEmoji}>✨</Text>
+              <Sparkles size={30} color="#fff" strokeWidth={2.2} />
             </View>
             <Text style={s.appName}>SmartMeal</Text>
             <Text style={s.tagline}>Start your cooking journey</Text>
           </View>
 
-          {/* BOTTOM — form card */}
           <View style={s.card}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               <Text style={s.cardTitle}>Create account</Text>
               <Text style={s.cardSub}>Join us today</Text>
 
@@ -79,7 +119,7 @@ const { isDark, toggleTheme } = useTheme();
               <View style={s.fieldWrap}>
                 <Text style={s.fieldLabel}>EMAIL</Text>
                 <View style={[s.inputBox, focused === "email" && s.inputBoxFocused]}>
-                  <Text style={s.inputIcon}>✉️</Text>
+                  <Mail size={18} color="#888" strokeWidth={2} />
                   <TextInput
                     style={s.input}
                     placeholder="you@example.com"
@@ -99,7 +139,7 @@ const { isDark, toggleTheme } = useTheme();
               <View style={s.fieldWrap}>
                 <Text style={s.fieldLabel}>PASSWORD</Text>
                 <View style={[s.inputBox, focused === "password" && s.inputBoxFocused]}>
-                  <Text style={s.inputIcon}>🔒</Text>
+                  <Lock size={18} color="#888" strokeWidth={2} />
                   <TextInput
                     style={s.input}
                     placeholder="At least 6 characters"
@@ -116,13 +156,15 @@ const { isDark, toggleTheme } = useTheme();
               {/* Confirm */}
               <View style={s.fieldWrap}>
                 <Text style={s.fieldLabel}>CONFIRM PASSWORD</Text>
-                <View style={[s.inputBox, focused === "confirm" && s.inputBoxFocused,
-                  confirm.length > 0 && password !== confirm && s.inputBoxError,
-                  confirm.length > 0 && password === confirm && s.inputBoxSuccess,
-                ]}>
-                  <Text style={s.inputIcon}>
-                    {confirm.length > 0 ? (password === confirm ? "✅" : "❌") : "🔑"}
-                  </Text>
+                <View
+                  style={[
+                    s.inputBox,
+                    focused === "confirm" && s.inputBoxFocused,
+                    confirm.length > 0 && password !== confirm && s.inputBoxError,
+                    confirm.length > 0 && password === confirm && s.inputBoxSuccess,
+                  ]}
+                >
+                  <ConfirmIcon />
                   <TextInput
                     style={s.input}
                     placeholder="Repeat your password"
@@ -139,39 +181,31 @@ const { isDark, toggleTheme } = useTheme();
               {/* Error */}
               {error !== "" && (
                 <View style={s.errorBox}>
-                  <Text style={s.errorText}>⚠️  {error}</Text>
+                  <AlertCircle size={16} color="#ef4444" strokeWidth={2.2} />
+                  <Text style={s.errorText}>{error}</Text>
                 </View>
               )}
 
               {/* Password strength hint */}
               {password.length > 0 && password.length < 6 && (
                 <View style={s.hintBox}>
-                  <Text style={s.hintText}>💡  Password needs at least 6 characters</Text>
+                  <Lightbulb size={16} color="#FF8C42" strokeWidth={2.2} />
+                  <Text style={s.hintText}>Password needs at least 6 characters</Text>
                 </View>
               )}
 
               {/* Button */}
-              <TouchableOpacity
-  onPress={toggleTheme}
-  style={{
-    position: "absolute",
-    top: 60, right: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    padding: 10, borderRadius: 20, zIndex: 10,
-  }}
->
-  <Text style={{ fontSize: 20 }}>{isDark ? "☀️" : "🌙"}</Text>
-</TouchableOpacity>
               <TouchableOpacity
                 style={[s.button, loading && s.buttonDisabled]}
                 onPress={handleRegister}
                 activeOpacity={0.85}
                 disabled={loading}
               >
-                {loading
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={s.buttonText}>Create Account →</Text>
-                }
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={s.buttonText}>Create Account</Text>
+                )}
               </TouchableOpacity>
 
               {/* Footer */}
@@ -196,7 +230,9 @@ const s = StyleSheet.create({
   },
   overlayBottom: {
     position: "absolute",
-    bottom: 0, left: 0, right: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
     height: "60%",
     backgroundColor: "rgba(10,5,0,0.5)",
   },
@@ -206,7 +242,6 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  // ── Branding ──────────────────────────────────
   top: {
     alignItems: "center",
     paddingTop: 52,
@@ -223,7 +258,6 @@ const s = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 4,
   },
-  logoEmoji: { fontSize: 36 },
   appName: {
     fontSize: 30,
     fontWeight: "900",
@@ -236,7 +270,6 @@ const s = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ── Card ──────────────────────────────────────
   card: {
     backgroundColor: "rgba(18,10,5,0.9)",
     borderTopLeftRadius: 32,
@@ -263,7 +296,6 @@ const s = StyleSheet.create({
     marginVertical: 20,
   },
 
-  // ── Fields ────────────────────────────────────
   fieldWrap: { marginBottom: 14 },
   fieldLabel: {
     fontSize: 10,
@@ -294,7 +326,6 @@ const s = StyleSheet.create({
     borderColor: "#22c55e",
     backgroundColor: "rgba(34,197,94,0.05)",
   },
-  inputIcon: { fontSize: 16 },
   input: {
     flex: 1,
     height: 50,
@@ -302,29 +333,41 @@ const s = StyleSheet.create({
     fontSize: 15,
   },
 
-  // ── Feedback boxes ────────────────────────────
   errorBox: {
     backgroundColor: "rgba(239,68,68,0.1)",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(239,68,68,0.25)",
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
-  errorText: { color: "#ef4444", fontSize: 13 },
+  errorText: {
+    color: "#ef4444",
+    fontSize: 13,
+    flex: 1,
+  },
   hintBox: {
     backgroundColor: "rgba(255,140,66,0.08)",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(255,140,66,0.2)",
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
-  hintText: { color: "#FF8C42", fontSize: 13 },
+  hintText: {
+    color: "#FF8C42",
+    fontSize: 13,
+    flex: 1,
+  },
 
-  // ── Button ────────────────────────────────────
   button: {
     backgroundColor: "#FF8C42",
     borderRadius: 16,
@@ -344,7 +387,6 @@ const s = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ── Footer ────────────────────────────────────
   footer: {
     flexDirection: "row",
     justifyContent: "center",
