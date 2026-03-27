@@ -1,16 +1,16 @@
-import { useRef, useEffect, useState } from "react";
+import { Bell, BellOff, LogOut, User } from "lucide-react-native";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert, Animated, Easing, SafeAreaView, ScrollView,
   StatusBar, StyleSheet, Text, TouchableOpacity, View,
 } from "react-native";
-import { User, Sun, Moon, Bell, BellOff, LogOut } from "lucide-react-native";
 import TopBar from "../components/TopBar";
 import { useApp } from "../context/AppContext";
 import { useTheme } from "../context/ThemeContext";
 import { cancelGroceryReminder, registerForNotifications, scheduleGroceryReminder } from "../services/notifications";
 
-const DARK_BG  = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800";
-const LIGHT_BG = "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=800";
+const DARK_BG  = "https://i.pinimg.com/736x/04/3c/58/043c5818132300529881da1d598b5758.jpg";
+const LIGHT_BG = "https://i.pinimg.com/736x/04/3c/58/043c5818132300529881da1d598b5758.jpg";
 
 const HOURS   = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = [0, 15, 30, 45];
@@ -73,7 +73,7 @@ export default function Settings() {
       <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.72)" : "rgba(255,247,237,0.90)" }} />
 
       <SafeAreaView style={s.safe}>
-        <TopBar title="Settings" showBack showGrocery={false} />
+        <TopBar title="Settings" showBack showGrocery={false} /> 
         <ScrollView contentContainerStyle={[s.content, { marginTop: 80 }]} showsVerticalScrollIndicator={false}>
 
           {/* Account */}
@@ -90,27 +90,8 @@ export default function Settings() {
             <Text style={s.logoutText}>Sign Out</Text>
           </TouchableOpacity>
 
-          {/* Appearance */}
-          <View style={s.sectionRow}>
-            {isDark ? <Sun size={12} color={faintColor} strokeWidth={2} /> : <Moon size={12} color={faintColor} strokeWidth={2} />}
-            <Text style={[s.sectionLabel, { color: faintColor }]}>Appearance</Text>
-          </View>
-          <TouchableOpacity
-            style={[s.themeBtn, { backgroundColor: cardBg, borderColor: cardBorder }]}
-            onPress={toggleTheme}
-          >
-            {isDark
-              ? <Sun size={22} color={colors.accent} strokeWidth={1.8} />
-              : <Moon size={22} color={colors.accent} strokeWidth={1.8} />
-            }
-            <View style={s.themeBody}>
-              <Text style={[s.themeLabel, { color: textColor }]}>
-                {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              </Text>
-              <Text style={[s.themeSub, { color: mutedColor }]}>Currently: {isDark ? "Dark" : "Light"}</Text>
-            </View>
-            <Text style={[s.themeArrow, { color: colors.accent }]}>›</Text>
-          </TouchableOpacity>
+          
+          
 
           {/* Notifications */}
           <View style={s.sectionRow}>
@@ -151,7 +132,7 @@ export default function Settings() {
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={[s.preview, { color: textColor }]}>⏰  {pad(hour)}:{pad(minute)} every day</Text>
+            <Text style={[s.preview, { color: textColor }]}> {pad(hour)}:{pad(minute)} every day</Text>
           </View>
 
           <TouchableOpacity
@@ -178,14 +159,14 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 20, paddingBottom: 48 },
   sectionRow: { flexDirection: "row", alignItems: "center", gap: 5, marginTop: 24, marginBottom: 10 },
-  sectionLabel: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2, textTransform: "uppercase" },
+  sectionLabel: {  fontSize: 11, fontWeight: "800", letterSpacing: 1.2, textTransform: "uppercase" },
   card: { borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 12 },
   cardLabel: { fontSize: 12, marginBottom: 4 },
   cardValue: { fontSize: 15, fontWeight: "700" },
   logoutBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 1.5, borderColor: "#ef4444", borderRadius: 14, paddingVertical: 14, marginBottom: 8 },
   logoutText: { color: "#ef4444", fontWeight: "700", fontSize: 15 },
   themeBtn: { flexDirection: "row", alignItems: "center", borderRadius: 16, padding: 16, borderWidth: 1, marginBottom: 8, gap: 12 },
-  themeBody: { flex: 1 },
+ 
   themeLabel: { fontSize: 15, fontWeight: "700" },
   themeSub: { fontSize: 12, marginTop: 2 },
   themeArrow: { fontSize: 22, fontWeight: "700" },

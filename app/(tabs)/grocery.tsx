@@ -1,12 +1,15 @@
 import { ChevronDown, ChevronUp, Dumbbell, Leaf, Plus, Scale, Wallet } from "lucide-react-native";
 import { useState } from "react";
 import {
-    SafeAreaView, ScrollView, StatusBar, StyleSheet,
-    Text, TouchableOpacity, View,
+  Image, SafeAreaView, ScrollView, StatusBar,
+  StyleSheet, Text, TouchableOpacity, View,
 } from "react-native";
 import TopBar from "../../components/TopBar";
 import { useApp } from "../../context/AppContext";
 import { useTheme } from "../../context/ThemeContext";
+
+const DARK_BG  = "https://i.pinimg.com/736x/90/6b/ea/906bea08a5a98c31614277eb381479cd.jpg";
+const LIGHT_BG = "https://i.pinimg.com/736x/70/4b/c8/704bc862b403418597d4607f7b4d44fb.jpg";
 
 type Goal = "balanced" | "vegetarian" | "budget" | "highprotein";
 
@@ -48,16 +51,21 @@ export default function Grocery() {
   const { addToGrocery, groceryList } = useApp();
   const { colors, isDark } = useTheme();
   const [expanded, setExpanded] = useState<Goal | null>(null);
-  const [checked, setChecked] = useState<string[]>([]);
+  const [checked, setChecked]   = useState<string[]>([]);
 
   const toggle = (item: string) =>
     setChecked((p) => p.includes(item) ? p.filter((i) => i !== item) : [...p, item]);
 
-  const bg = isDark ? "#0d0d0d" : "#FFF7ED";
-
   return (
-    <View style={[s.container, { backgroundColor: bg }]}>
+    <View style={{ flex: 1 }}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <Image
+        source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.88)" }} />
+
       <SafeAreaView style={{ flex: 1 }}>
         <TopBar showBack={false} />
         <ScrollView contentContainerStyle={[s.scroll, { marginTop: 80 }]} showsVerticalScrollIndicator={false}>
@@ -67,39 +75,29 @@ export default function Grocery() {
 
           {GOALS.map(({ key, Icon, title, desc }) => {
             const isOpen = expanded === key;
-            const list = LISTS[key];
-            const allItems = list.flatMap((c) => c.items);
+            const list   = LISTS[key];
             return (
               <View key={key} style={[s.card, {
                 backgroundColor: isDark ? "rgba(255,255,255,0.06)" : colors.bgCard,
                 borderColor: isOpen ? colors.accent : isDark ? "rgba(255,255,255,0.1)" : colors.border,
               }]}>
-                {/* Goal header */}
-                <TouchableOpacity
-                  style={s.cardHeader}
-                  onPress={() => setExpanded(isOpen ? null : key)}
-                  activeOpacity={0.8}
-                >
+                <TouchableOpacity style={s.cardHeader} onPress={() => setExpanded(isOpen ? null : key)} activeOpacity={0.8}>
                   <View style={[s.iconWrap, { backgroundColor: isOpen ? colors.accent : isDark ? "rgba(255,255,255,0.1)" : colors.accentLight }]}>
                     <Icon size={20} color={isOpen ? "#fff" : colors.accent} strokeWidth={1.8} />
                   </View>
                   <View style={s.cardBody}>
                     <Text style={[s.cardTitle, { color: isDark ? "#fff" : colors.text }]}>{title}</Text>
-                    <Text style={[s.cardDesc, { color: isDark ? "#bbb" : colors.textMuted }]}>{desc}</Text>
+                    <Text style={[s.cardDesc,  { color: isDark ? "#bbb" : colors.textMuted }]}>{desc}</Text>
                   </View>
                   {isOpen
-                    ? <ChevronUp size={18} color={colors.accent} strokeWidth={2} />
+                    ? <ChevronUp   size={18} color={colors.accent} strokeWidth={2} />
                     : <ChevronDown size={18} color={colors.accent} strokeWidth={2} />
                   }
                 </TouchableOpacity>
 
-                {/* Expanded list */}
                 {isOpen && (
                   <View style={s.listWrap}>
-                    <TouchableOpacity
-                      style={s.addAllBtn}
-                      onPress={() => allItems.forEach((i) => addToGrocery(i))}
-                    >
+                    <TouchableOpacity style={s.addAllBtn} onPress={() => list.flatMap((c) => c.items).forEach((i) => addToGrocery(i))}>
                       <Plus size={13} color={colors.accent} strokeWidth={2.5} />
                       <Text style={[s.addAllText, { color: colors.accent }]}>Add all to my list</Text>
                     </TouchableOpacity>
@@ -144,26 +142,25 @@ export default function Grocery() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 48 },
-  title: { fontSize: 24, fontWeight: "900", marginBottom: 4 },
-  sub: { fontSize: 13, marginBottom: 20 },
-  card: { borderRadius: 18, borderWidth: 1.5, marginBottom: 12, overflow: "hidden" },
+  scroll:     { padding: 20, paddingBottom: 48 },
+  title:      { fontSize: 24, fontWeight: "900", marginBottom: 4 },
+  sub:        { fontSize: 13, marginBottom: 20 },
+  card:       { borderRadius: 18, borderWidth: 1.5, marginBottom: 12, overflow: "hidden" },
   cardHeader: { flexDirection: "row", alignItems: "center", padding: 16, gap: 12 },
-  iconWrap: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  cardBody: { flex: 1 },
-  cardTitle: { fontSize: 15, fontWeight: "800" },
-  cardDesc: { fontSize: 12, marginTop: 2 },
-  listWrap: { paddingHorizontal: 16, paddingBottom: 16 },
-  addAllBtn: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
+  iconWrap:   { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  cardBody:   { flex: 1 },
+  cardTitle:  { fontSize: 15, fontWeight: "800" },
+  cardDesc:   { fontSize: 12, marginTop: 2 },
+  listWrap:   { paddingHorizontal: 16, paddingBottom: 16 },
+  addAllBtn:  { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 14 },
   addAllText: { fontSize: 13, fontWeight: "700" },
   catSection: { marginBottom: 16 },
-  catTitle: { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 },
-  row: { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, gap: 12 },
-  box: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
-  tick: { color: "#fff", fontSize: 11, fontWeight: "800" },
-  itemText: { flex: 1, fontSize: 14 },
-  itemDone: { color: "#888", textDecorationLine: "line-through" },
-  addBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  catTitle:   { fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 },
+  row:        { flexDirection: "row", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, gap: 12 },
+  box:        { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
+  tick:       { color: "#fff", fontSize: 11, fontWeight: "800" },
+  itemText:   { flex: 1, fontSize: 14 },
+  itemDone:   { color: "#888", textDecorationLine: "line-through" },
+  addBtn:     { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
   addBtnText: { fontSize: 12, fontWeight: "700" },
 });

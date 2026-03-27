@@ -5,6 +5,8 @@ import { Platform } from "react-native";
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -12,40 +14,56 @@ Notifications.setNotificationHandler({
 
 export async function registerForNotifications(): Promise<boolean> {
   if (!Device.isDevice) return false;
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  let final = existing;
-  if (existing !== "granted") {
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== "granted") {
     const { status } = await Notifications.requestPermissionsAsync();
-    final = status;
+    finalStatus = status;
   }
-  if (final !== "granted") return false;
+
+  if (finalStatus !== "granted") return false;
+
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("default", {
       name: "default",
       importance: Notifications.AndroidImportance.MAX,
+      sound: "default",
     });
   }
+
   return true;
 }
 
-export async function scheduleGroceryReminder(hour: number, minute: number): Promise<string | null> {
+export async function scheduleGroceryReminder(
+  hour: number,
+  minute: number
+): Promise<string | null> {
   await cancelGroceryReminder();
+
   try {
     return await Notifications.scheduleNotificationAsync({
       content: {
         title: "🛒 Don't forget to shop!",
         body: "You have items on your grocery list waiting.",
-        sound: true,
+        sound: "default",
       },
-      trigger: { hour, minute, repeats: true },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour,
+        minute,
+      },
     });
-  } catch {
+  } catch (e) {
+    console.log("Error scheduling notification:", e);
     return null;
   }
 }
 
 export async function cancelGroceryReminder(): Promise<void> {
   const all = await Notifications.getAllScheduledNotificationsAsync();
+
   for (const n of all) {
     if (n.content.title?.includes("Don't forget to shop")) {
       await Notifications.cancelScheduledNotificationAsync(n.identifier);
@@ -58,6 +76,7 @@ export async function sendTestNotification(): Promise<void> {
     content: {
       title: "🛒 Don't forget to shop!",
       body: "You have items on your grocery list waiting.",
+      sound: "default",
     },
     trigger: null,
   });

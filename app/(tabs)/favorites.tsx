@@ -1,21 +1,30 @@
 import { Heart } from "lucide-react-native";
 import {
-  FlatList,
-  SafeAreaView, StatusBar, StyleSheet,
-  Text, View,
+  FlatList, Image, SafeAreaView,
+  StatusBar, StyleSheet, Text, View,
 } from "react-native";
 import RecipeCard from "../../components/RecipeCard";
 import TopBar from "../../components/TopBar";
 import { useApp } from "../../context/AppContext";
 import { useTheme } from "../../context/ThemeContext";
 
+const DARK_BG  = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800";
+const LIGHT_BG = "https://i.pinimg.com/1200x/cc/00/b5/cc00b5b9d93afba3a71fa5fce8111c14.jpg";
+
 export default function Favorites() {
   const { favorites } = useApp();
   const { colors, isDark } = useTheme();
 
   return (
-    <View style={[s.container, { backgroundColor: isDark ? "#0d0d0d" : "#FFF7ED" }]}>
+    <View style={{ flex: 1 }}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+      <Image
+        source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
+        style={StyleSheet.absoluteFillObject}
+        resizeMode="cover"
+      />
+      <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.88)" }} />
+
       <SafeAreaView style={{ flex: 1 }}>
         <TopBar showBack={false} />
         <FlatList
@@ -39,8 +48,7 @@ export default function Favorites() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1 },
-  list: { padding: 16, paddingBottom: 40 },
-  emptyBox: { alignItems: "center", marginTop: 120, gap: 16 },
+  list:      { padding: 16, paddingBottom: 40 },
+  emptyBox:  { alignItems: "center", marginTop: 120, gap: 16 },
   emptyText: { fontSize: 15, textAlign: "center", lineHeight: 22 },
 });

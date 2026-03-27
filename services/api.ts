@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "axios"; //HTTP requests to the API
 import { Meal } from "../context/AppContext";
 
 const BASE = "https://www.themealdb.com/api/json/v1/1";
@@ -37,8 +37,8 @@ export async function getMealById(id: string): Promise<Meal | null> {
     .catch(() => null);
   return res?.data.meals?.[0] ?? null;
 }
-
-export async function getRandomMeals(count = 16): Promise<Meal[]> {
+// TheMealDB's random endpoint returns one meal at a time, so we make multiple requests in parallel to get the desired count of random meals. We also filter out any null results and ensure uniqueness by meal ID.
+export async function getRandomMeals(count = 50): Promise<Meal[]> {
   const results = await Promise.all(
     Array.from({ length: count }, () =>
       axios
