@@ -55,7 +55,7 @@ export default function RecipeDetail() {
       </SafeAreaView>
     );
 
-  const fav = isFavorite(meal.idMeal);
+  const fav = isFavorite(meal.idMeal); // Check if the meal is in favorites to set the initial state of the favorite button
 
   const ingredients: { name: string; measure: string; inFridge: boolean }[] = [];
   for (let i = 1; i <= 20; i++) {
@@ -63,7 +63,7 @@ export default function RecipeDetail() {
     const msr = meal[`strMeasure${i}`]?.trim();
     if (!ing) continue;
 
-    const inFridge = fridgeItems.some((f) => ing.includes(f) || f.includes(ing));
+    const inFridge = fridgeItems.some((f) => ing.includes(f) || f.includes(ing)); // Check if the ingredient is in the fridge, allowing for partial matches 
     ingredients.push({
       name: ing,
       measure: msr ?? "",
@@ -71,7 +71,7 @@ export default function RecipeDetail() {
     });
   }
 
-  const have = ingredients.filter((i) => i.inFridge).length;
+  const have = ingredients.filter((i) => i.inFridge).length; // Count how many ingredients the user has in their fridge
 
   return (
     <SafeAreaView style={[s.safe, { backgroundColor: isDark ? "#0d0d0d" : "#FFF7ED" }]}>

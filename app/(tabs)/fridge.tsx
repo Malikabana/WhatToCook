@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
-import { Plus, Search, Thermometer, X } from "lucide-react-native";
+import { Plus, Search, X } from "lucide-react-native";
 import { useState } from "react";
 import {
-  ActivityIndicator, Animated,
+  ActivityIndicator,
   FlatList, Image, SafeAreaView, StatusBar,
   StyleSheet, Text, TextInput,
   TouchableOpacity, View
@@ -46,18 +46,17 @@ function scoreMeal(meal: Meal, fridgeItems: string[]) {
   return { ...meal, matchPercent, missing };
 }
 
-// ── Step 4: score all meals and sort best first ──────────────────────
+
 function rankMeals(meals: Meal[], fridgeItems: string[]) {
   return meals
     .map((meal) => scoreMeal(meal, fridgeItems))
     .sort((a, b) => b.matchPercent - a.matchPercent);
 }
 
-// ── colour for the match bar ─────────────────────────────────────────
-function barColor(percent: number): string {
-  if (percent >= 80) return "#22c55e"; // green  — ready to cook
-  if (percent >= 50) return "#FF8C42"; // orange — missing a few
-  return "#ef4444";                    // red    — missing most
+function barColor(percent: number): string { 
+  if (percent >= 80) return "#22c55e"; 
+  if (percent >= 50) return "#FF8C42"; 
+  return "#ef4444";                 
 }
 
 // ── Main component ───────────────────────────────────────────────────
@@ -68,32 +67,32 @@ export default function Fridge() {
 
   const [text, setText]       = useState("");
   const [results, setResults] = useState<ReturnType<typeof scoreMeal>[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); 
   const [searched, setSearched] = useState(false);
 
   
 
   const handleAdd = () => {
     const clean = text.trim().toLowerCase();
-    if (!clean) return;
+    if (!clean) return; 
     addFridgeItem(clean);
-    setText("");
+    setText(""); 
   };
 
   const handleSearch = async () => {
-    if (!fridgeItems.length) return;
-    setLoading(true);
+    if (!fridgeItems.length) return; //if no items, do nothing
+    setLoading(true); //if items, start loading
     setSearched(false);
 
-    // Step A: get candidate meals using the first fridge item
+    
     const candidates = await searchByIngredient(fridgeItems[0]);
 
-    // Step B: fetch full details for each candidate in parallel
-    const detailed = await Promise.all(
+  
+    const detailed = await Promise.all( 
       candidates.slice(0, 15).map((m) => getMealById(m.idMeal))
     );
 
-    // Step C: filter out nulls, score and rank
+    // filter out nulls, score and rank
     const validMeals  = detailed.filter((m): m is Meal => m !== null);
     const rankedMeals = rankMeals(validMeals, fridgeItems);
 
@@ -106,13 +105,13 @@ export default function Fridge() {
     <View style={{ flex: 1 }}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      {/* Animated wallpaper */}
-      <Animated.Image
+    
+      <Image
         source={{ uri: isDark ? DARK_BG : LIGHT_BG }}
         style={[StyleSheet.absoluteFillObject,]}
-        resizeMode="cover"
+        
       />
-      {/* Overlay to keep text readable */}
+    
       <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.65)" : "rgba(255,247,237,0.88)" }} />
 
       <SafeAreaView style={s.safe}>
@@ -127,17 +126,17 @@ export default function Fridge() {
             <View>
               <Text style={[s.title, { color: isDark ? "#fff" : colors.text }]}>My Fridge</Text>
               <View style={s.subRow}>
-                <Thermometer size={14} color={isDark ? "#bbb" : colors.textMuted} strokeWidth={2} />
-                <Text style={[s.sub, { color: isDark ? "#bbb" : colors.textMuted }]}>
-                  Add what you have — we'll find the best matches
+                
+                <Text style={[s.sub, { color: isDark ? "#f0ededff" : colors.textMuted }]}>
+                  Add what you have and find best matches
                 </Text>
               </View>
 
-              {/* Text input to add ingredients */}
+              
               <View style={s.inputRow}>
                 <View style={[s.inputBox, {
                   backgroundColor: isDark ? "rgba(255,255,255,0.09)" : "#fff",
-                  borderColor: isDark ? "rgba(255,255,255,0.12)" : colors.border,
+                  borderColor: isDark ? "rgba(225, 218, 218, 0.12)" : colors.border, 
                 }]}>
                   <TextInput
                     style={[s.input, { color: isDark ? "#fff" : colors.text }]}
@@ -145,8 +144,6 @@ export default function Fridge() {
                     onChangeText={setText}
                     onSubmitEditing={handleAdd}
                     returnKeyType="done"
-                    placeholder="e.g. chicken, pasta..."
-                    placeholderTextColor={isDark ? "#666" : colors.textFaint}
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -156,7 +153,7 @@ export default function Fridge() {
                 </TouchableOpacity>
               </View>
 
-              {/* Fridge chips — tap to remove */}
+              
               {fridgeItems.length > 0 && (
                 <View style={s.chips}>
                   {fridgeItems.map((item) => (
@@ -175,8 +172,8 @@ export default function Fridge() {
                 </View>
               )}
 
-              {/* Search button */}
-              {fridgeItems.length > 0 && !loading && (
+             
+              {fridgeItems.length > 0 && !loading && ( 
                 <TouchableOpacity
                   style={[s.searchBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.12)" : colors.text }]}
                   onPress={handleSearch}

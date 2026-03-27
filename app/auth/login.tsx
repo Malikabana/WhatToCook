@@ -44,6 +44,7 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
+     
     } catch (e: any) {
       setError(ERRORS[e.code] ?? "Something went wrong.");
     } finally {
@@ -69,7 +70,7 @@ export default function Login() {
             <View style={s.logoBadge}>
               <UtensilsCrossed size={30} color="#fff" strokeWidth={2.2} />
             </View>
-            <Text style={s.appName}>SmartMeal</Text>
+            <Text style={s.appName}>Cook With Me</Text>
             <Text style={s.tagline}>let us cook for you</Text>
           </View>
 

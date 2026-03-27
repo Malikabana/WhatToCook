@@ -9,7 +9,7 @@ type ThemeColors = {
   bgInput: string;
   border: string;
   text: string;
-  textMuted: string;
+  textMuted: string; //
   textFaint: string;
   accent: string;
   accentLight: string;
@@ -61,7 +61,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    AsyncStorage.getItem("app_theme").then((saved) => {
+    AsyncStorage.getItem("app_theme").then((saved) => { // On app load, we check AsyncStorage for a saved theme preference under the key "app_theme". If we find a valid theme ("light" or "dark"), we set it as the current theme. This ensures that the user's theme choice persists across app sessions. If there's an error retrieving the value, we simply log it and default to "dark".
       if (saved === "light" || saved === "dark") setTheme(saved);
     });
   }, []);

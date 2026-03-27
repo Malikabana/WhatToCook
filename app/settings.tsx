@@ -73,7 +73,7 @@ export default function Settings() {
       <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: isDark ? "rgba(0,0,0,0.72)" : "rgba(255,247,237,0.90)" }} />
 
       <SafeAreaView style={s.safe}>
-        <TopBar title="Settings" showBack showGrocery={false} /> 
+        <TopBar title = "Settings" showBack showGrocery={false} /> 
         <ScrollView contentContainerStyle={[s.content, { marginTop: 80 }]} showsVerticalScrollIndicator={false}>
 
           {/* Account */}

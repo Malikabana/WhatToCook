@@ -52,13 +52,13 @@ export default function Register() {
       return;
     }
 
-    setLoading(true);
-    setError("");
+    setLoading(true); //
+    setError(""); 
 
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
     } catch (e: any) {
-      if (e.code === "auth/email-already-in-use") {
+      if (e.code === "auth/email-already-in-use") { //
         setError("Email already registered.");
       } else if (e.code === "auth/invalid-email") {
         setError("Invalid email address.");
@@ -72,7 +72,7 @@ export default function Register() {
 
   const ConfirmIcon = () => {
     if (confirm.length === 0) {
-      return <KeyRound size={18} color="#888" strokeWidth={2} />;
+      return <KeyRound size={18} color="#888" strokeWidth={2} />;  
     }
 
     if (password === confirm) {
@@ -101,7 +101,7 @@ export default function Register() {
             <View style={s.logoBadge}>
               <Sparkles size={30} color="#fff" strokeWidth={2.2} />
             </View>
-            <Text style={s.appName}>SmartMeal</Text>
+            <Text style={s.appName}>Cook With Me</Text>
             <Text style={s.tagline}>Start your cooking journey</Text>
           </View>
 
